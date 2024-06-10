@@ -1,3 +1,3 @@
 from oemer import ete
 
-ete.main()
+ete.main() 

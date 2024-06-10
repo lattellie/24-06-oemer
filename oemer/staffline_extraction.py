@@ -469,6 +469,7 @@ def filter_line_peaks(peaks: ndarray, norm: ndarray, max_gap_ratio: float = 1.5)
     # Filter by x-axis
     gaps = peaks[1:] - peaks[:-1]
     count = max(5, round(len(peaks) * 0.2))
+    # approx unit: around how far is each line in the same bar, max_gap: max of bar diff
     approx_unit = np.mean(np.sort(gaps)[:count])
     max_gap = approx_unit * max_gap_ratio
 

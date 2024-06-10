@@ -268,6 +268,7 @@ def download_file(title: str, url: str, save_path: str) -> None:
 def main() -> None:
     parser = get_parser()
     args = parser.parse_args()
+    print(args)
 
     if not os.path.exists(args.img_path):
         raise FileNotFoundError(f"The given image path doesn't exists: {args.img_path}")

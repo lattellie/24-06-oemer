@@ -220,8 +220,8 @@ def parse_barlines(
             sym_barline_map[sym_idx] += no_note[sym_idx]
     sym_barline_map[sym_barline_map>0] = 1
 
-    lines = find_lines(sym_barline_map)
-    line_box = filter_barlines(lines, min_height_unit_ratio)
+    lines = find_lines(sym_barline_map) # find the lines and return the (x0, y0, x1, y1)
+    line_box = filter_barlines(lines, min_height_unit_ratio) # return the box that's 
     logger.debug("Detected barlines: %d", len(line_box))
 
     return line_box
@@ -255,11 +255,15 @@ def parse_clefs_keys(
     max_clef_tp_ratio: float = 0.45
 ) -> Tuple[List[BBox], List[BBox], List[str], List[str]]:
     global cs_img
+    # clef_keys is the layer of 1 mapping to anywhere with # or b or soprano/tenor clef sign
     cs_img = to_rgb_img(clefs_keys)  # type: ignore
 
     ker = np.ones((np.int64(unit_size//2), 1), dtype=np.uint8)
+    # make the clef_keys thinner for better classification
     clefs_keys = cv2.erode(cv2.dilate(clefs_keys.astype(np.uint8), ker), ker)
+    # make the outer rectangle for all the thinnered clef_keys
     bboxes = get_bbox(clefs_keys)
+    # remove the one that's out of the "zones"
     bboxes = filter_out_of_range_bbox(bboxes)
     bboxes = rm_merge_overlap_bbox(bboxes, mode='merge', overlap_ratio=0.3)
     bboxes = filter_out_small_area(bboxes, area_size_func=lambda usize: usize**2)
@@ -456,12 +460,16 @@ def extract(min_barline_h_unit_ratio: float = 3.75) -> Tuple[List[Barline], List
     clefs_keys = layers.get_layer('clefs_keys_pred')
     group_map = layers.get_layer('group_map')
 
+    # line box returns a np.ndarray that's of size lines*4: [x0, y0, x1, y1]
     line_box = parse_barlines(group_map, stems_rests, symbols, min_height_unit_ratio=min_barline_h_unit_ratio)
+    # return a list of Barline Object 
     barlines = gen_barlines(line_box)
-
+    # returns the size of the length between two clefLines (~13.5 in this case)
     unit_size = get_global_unit_size()
     clef_box, key_box, clef_label, key_label = parse_clefs_keys(clefs_keys, unit_size)
+    # return a list of Clef Object
     clefs = gen_clefs(clef_box, clef_label)
+    # return a list of Sfn object, potentially the keys 
     sfns = gen_sfns(key_box, key_label)
 
     rest_box, rest_label = parse_rests(line_box, unit_size)

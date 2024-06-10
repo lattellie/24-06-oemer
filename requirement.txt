@@ -1,0 +1,8 @@
+pillow==10.3.0
+numpy==1.26.4
+opencv-python==4.10.0
+typing-extensions==4.12.1
+scipy==1.13.1
+matplotlib==3.9.0
+scikit-learn==1.2.0
+onnxruntime==1.18.0
