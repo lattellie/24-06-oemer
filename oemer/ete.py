@@ -26,7 +26,7 @@ from oemer.symbol_extraction import extract as symbol_extract
 from oemer.rhythm_extraction import extract as rhythm_extract
 from oemer.build_system import MusicXMLBuilder
 from oemer.draw_teaser import teaser
-
+from oemer.ellie_createImg import createImg
 
 logger = get_logger(__name__)
 
@@ -208,6 +208,25 @@ def extract(args: Namespace) -> str:
     logger.info("Extracting rhythm types")
     rhythm_extract()
 
+    sectionDir = 'images/testing/'+f_name+'/'
+    if not os.path.isdir(sectionDir):
+        os.makedirs(sectionDir)
+        print(f"folder {sectionDir} created")
+    if not os.path.isdir('images/testing/mergeImg/'):
+        os.makedirs('images/testing/mergeImg/')
+    mainDir = 'images/testing/mergeImg/'+f_name
+    clefsfnrestImg = createImg('clefsfnrest',image,clefs,sfns,rests,sectionDir)
+    notesfnImg = createImg('notesfn',image,notes,'','',sectionDir)
+    notesImg = createImg('notes',image,notes,'','',sectionDir)
+    staffbarlineImg = createImg('staffbarline',image,staffs,barlines,'',sectionDir)
+    
+    if clefsfnrestImg.shape == notesfnImg.shape == notesImg.shape == staffbarlineImg.shape:
+        x = np.hstack((clefsfnrestImg,notesfnImg,notesImg,staffbarlineImg))
+        cv2.imwrite(mainDir+'.jpg',x)
+        print(f'image {mainDir}.jpg created')
+    else:
+        print('4 images have different size, cannot merge')
+
     # ---- Build MusicXML ---- #
     logger.info("Building MusicXML document")
     basename = os.path.basename(img_path).replace(".jpg", "").replace(".png", "")
@@ -234,7 +253,7 @@ def get_parser() -> ArgumentParser:
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("img_path", help="Path to the image.", type=str)
     parser.add_argument(
-        "-o", "--output-path", help="Path to output the result file.", type=str, default="./")
+        "-o", "--output-path", help="Path to output the result file.", type=str, default="./images")
     parser.add_argument(
         "--use-tf", help="Use Tensorflow for model inference. Default is to use Onnxruntime.", action="store_true")
     parser.add_argument(
