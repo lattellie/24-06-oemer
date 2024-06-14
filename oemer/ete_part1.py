@@ -55,7 +55,6 @@ def generate_pred(img_path: str, use_tf: bool = False) -> Tuple[ndarray, ndarray
     symbols = np.where(staff_symbols_map==2, 1, 0)
 
     logger.info("Extracting layers of different symbols")
-    symbol_thresholds = [0.5, 0.4, 0.4]
     sep, _ = inference(
         os.path.join(MODULE_PATH, "checkpoints/seg_net"),
         img_path,
@@ -119,6 +118,8 @@ def extract(img_path: str, output_path: str, dodewarp: bool,save_npy: bool) -> s
     dataDict['symbols'] = symbols
     dataDict['image'] = image
 
+    if save_npy:
+        np.save(output_path+f_name+'.npy', dataDict)
     return dataDict
 
 def download_file(title: str, url: str, save_path: str) -> None:

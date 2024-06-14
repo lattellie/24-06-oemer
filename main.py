@@ -1,9 +1,9 @@
-from oemer import ete_part1
+from oemer.ete_part1 import runModel1
 from oemer import ete_part2
 import os
 
-# ete.main() 
-eteWithArgs.main('C:/Ellie/ellie2023~2024/iis/oemer/images/newScope0613/1_tch1_doubleSharp.png',dodewarp=False)
+input_path = 'C:/Ellie/ellie2023~2024/iis/oemer/images/newScope0613/1_tch1_doubleSharp.png'
+dataDict = runModel1(input_path,outputPath = "./images/week2",dodewarp=False,save_npy=True)
 
 
 # folder_path = 'images/testing/origin'
