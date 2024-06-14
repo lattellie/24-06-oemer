@@ -407,7 +407,7 @@ def parse_stem_info(notes: List[NoteHead]) -> None:
 
 def extract(
     min_h_ratio: float = 0.4,
-    max_h_ratio: int = 5,
+    max_h_ratio: int = 3,
     min_w_ratio: float = 0.3,
     max_w_ratio: int = 3,
     min_area_ratio: float = 0.5,

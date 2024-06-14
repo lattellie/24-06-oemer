@@ -514,7 +514,7 @@ def parse_rhythm(beam_map: ndarray, map_info: Dict[int, Dict[str, Any]], agree_t
         1: NoteType.EIGHTH,
         2: NoteType.SIXTEENTH,
         3: NoteType.THIRTY_SECOND,
-        4: NoteType.SIXTEENTH,
+        4: NoteType.SIXTY_FOURTH,
         #5: None,
         #6: None
     }

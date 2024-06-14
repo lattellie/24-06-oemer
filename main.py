@@ -1,7 +1,9 @@
 from oemer import ete
 from oemer import eteTemp
+from oemer import eteWithArgs
 
-ete.main() 
+# ete.main() 
+eteWithArgs.main('C:/Ellie/ellie2023~2024/iis/oemer/images/newScope0613/1_tch1_doubleSharp.png',dodewarp=False)
 # import os
 
 # folder_path = 'images/testing/origin'
