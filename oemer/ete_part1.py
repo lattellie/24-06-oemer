@@ -111,7 +111,7 @@ def extract(img_path: str, output_path: str, dodewarp: bool,save_npy: bool) -> s
     symbols = symbols + clefs_keys + stems_rests
     symbols[symbols>1] = 1
     dataDict = dict()
-    dataDict['stem_rest'] = stems_rests
+    dataDict['stems_rests'] = stems_rests
     dataDict['clefs_keys'] = clefs_keys
     dataDict['staff'] = staff
     dataDict['notehead'] = notehead

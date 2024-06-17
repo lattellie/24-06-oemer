@@ -109,46 +109,18 @@ def register_note_id() -> None:
         notes[idx].id = idx
 
 
-def extract(img_path: str, output_path: str, dodewarp: bool) -> str:
+def extract(img_path:str,model1Data:dict,outputPath:str, dodewarp:bool) -> str:
+    if len(outputPath)>0 and outputPath[-1] != '/':
+        outputPath = outputPath + '/'
     img_path = Path(img_path)
     f_name = os.path.splitext(img_path.name)[0]
-    pkl_path = img_path.parent / f"{f_name}.pkl"
-    if pkl_path.exists():
-        # Load from cache
-        pred = pickle.load(open(pkl_path, "rb"))
-        notehead = pred["note"]
-        symbols = pred["symbols"]
-        staff = pred["staff"]
-        clefs_keys = pred["clefs_keys"]
-        stems_rests = pred["stems_rests"]
-    else:
-        staff, symbols, stems_rests, notehead, clefs_keys = generate_pred(str(img_path), use_tf=False)
+    stems_rests = model1Data['stems_rests']
+    clefs_keys = model1Data['clefs_keys']
+    notehead = model1Data['notehead']
+    symbols = model1Data['symbols']
+    staff = model1Data['staff']
+    image = model1Data['image']
 
-    # Load the original image, resize to the same size as prediction.
-    image_pil = Image.open(str(img_path))
-    if "GIF" != image_pil.format:
-        image = cv2.imread(str(img_path))
-    else:
-        gif_image = image_pil.convert('RGB')
-        gif_img_arr = np.array(gif_image)
-        image = gif_img_arr[:, :, ::-1].copy()
-
-    image = cv2.resize(image, (staff.shape[1], staff.shape[0]))
-
-    if dodewarp:
-        logger.info("Dewarping")
-        coords_x, coords_y = estimate_coords(staff)
-        staff = dewarp(staff, coords_x, coords_y)
-        symbols = dewarp(symbols, coords_x, coords_y)
-        stems_rests = dewarp(stems_rests, coords_x, coords_y)
-        clefs_keys = dewarp(clefs_keys, coords_x, coords_y)
-        notehead = dewarp(notehead, coords_x, coords_y)
-        for i in range(image.shape[2]):
-            image[..., i] = dewarp(image[..., i], coords_x, coords_y)
-
-    # Register predictions
-    symbols = symbols + clefs_keys + stems_rests
-    symbols[symbols>1] = 1
     layers.register_layer("stems_rests_pred", stems_rests)
     layers.register_layer("clefs_keys_pred", clefs_keys)
     layers.register_layer("notehead_pred", notehead)
@@ -165,7 +137,6 @@ def extract(img_path: str, output_path: str, dodewarp: bool) -> str:
     # ---- Extract noteheads ---- #
     logger.info("Extracting noteheads")
     notes = note_extract()
-    notes2 = note_extract()
 
     # Array of 'NoteHead' instances.
     layers.register_layer('notes', np.array(notes))
@@ -192,17 +163,11 @@ def extract(img_path: str, output_path: str, dodewarp: bool) -> str:
     logger.info("Extracting rhythm types")
     rhythm_extract()
 
-    sectionDir = 'images/testing/'+f_name+'/'
-    if not os.path.isdir(sectionDir):
-        os.makedirs(sectionDir)
-        print(f"folder {sectionDir} created")
-    if not os.path.isdir('images/testing/mergeImg/'):
-        os.makedirs('images/testing/mergeImg/')
-    mainDir = 'images/testing/mergeImg/'+f_name
-    clefsfnrestImg = createImg('clefsfnrest',image,clefs,sfns,rests,sectionDir)
-    notesfnImg = createImg('notesfn',image,notes,'','',sectionDir)
-    notesImg = createImg('notes',image,notes,'','',sectionDir)
-    staffbarlineImg = createImg('staffbarline',image,staffs,barlines,'',sectionDir)
+    mainDir = outputPath+'mergeImg/'+f_name
+    clefsfnrestImg = createImg('clefsfnrest',image,clefs,sfns,rests)
+    notesfnImg = createImg('notesfn',image,notes,'','')
+    notesImg = createImg('notes',image,notes,'','')
+    staffbarlineImg = createImg('staffbarline',image,staffs,barlines,'')
     
     if clefsfnrestImg.shape == notesfnImg.shape == notesImg.shape == staffbarlineImg.shape:
         x = np.hstack((clefsfnrestImg,notesfnImg,notesImg,staffbarlineImg))
@@ -219,7 +184,7 @@ def extract(img_path: str, output_path: str, dodewarp: bool) -> str:
     xml = builder.to_musicxml()
 
     # ---- Write out the MusicXML ---- #
-    out_path = output_path
+    out_path = outputPath
     if not out_path.endswith(".musicxml"):
         # Take the output path as the folder.
         out_path = os.path.join(out_path, basename+".musicxml")
@@ -246,27 +211,7 @@ def download_file(title: str, url: str, save_path: str) -> None:
         print(f"{title}: 100% {length}/{length}"+" "*20)
 
 
-def main(img_path,model1Data,outputPath = "./images", dodewarp=False) -> None:
-
-    if not os.path.exists(img_path):
-        raise FileNotFoundError(f"The given image path doesn't exists: {img_path}")
-
-    # Check there are checkpoints
-    chk_path = os.path.join(MODULE_PATH, "checkpoints/unet_big/model.onnx")
-    if not os.path.exists(chk_path):
-        logger.warn("No checkpoint found in %s", chk_path)
-        for idx, (title, url) in enumerate(CHECKPOINTS_URL.items()):
-            logger.info(f"Downloading checkpoints ({idx+1}/{len(CHECKPOINTS_URL)})")
-            save_dir = "unet_big" if title.startswith("1st") else "seg_net"
-            save_dir = os.path.join(MODULE_PATH, "checkpoints", save_dir)
-            save_path = os.path.join(save_dir, title.split("_")[1])
-            download_file(title, url, save_path)
-
-    clear_data()
-    mxl_path = extract(img_path,outputPath, dodewarp)
-    img = teaser()
-    img.save(mxl_path.replace(".musicxml", "_teaser.png"))
-
-
-if __name__ == "__main__":
-    main()
+def runModel2(imgpath, model1Data,outputPath = "./images/", dodewarp=False) -> None:
+    mxl_path = extract(imgpath, model1Data,outputPath, dodewarp)
+    # img = teaser()
+    # img.save(mxl_path.replace(".musicxml", "_teaser.png"))

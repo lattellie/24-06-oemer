@@ -1,6 +1,6 @@
 
 import cv2
-def createImg(typ:str, image, input1, input2, input3, dir = 'images/outputImg0610/',imsave=True,imshow=False):
+def createImg(typ:str, image, input1, input2, input3, dir = 'images/outputImg0610/',imsave=False,imshow=False):
     resize_ratio = 0.3
     def createClefSfnRestImg(image, clefs, sfns, rests, dir):
         img = image.copy()
